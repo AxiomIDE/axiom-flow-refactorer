@@ -1,3 +1,5 @@
+from nodes.flow_refactor_test_invoker import flow_refactor_test_invoker
+
+
 def test_flow_refactor_test_invoker_imports():
-    import nodes.flow_refactor_test_invoker as m
-    assert hasattr(m, "flow_refactor_test_invoker")
+    assert callable(flow_refactor_test_invoker)
