@@ -1,0 +1,4 @@
+syntax = "proto3";
+package axiom_flow_refactorer;
+option go_package = "axiom-official/axiom-flow-refactorer/gen";
+// Re-uses shared message types from axiom-agent-messages import.

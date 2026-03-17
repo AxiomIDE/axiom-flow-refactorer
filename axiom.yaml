@@ -1,0 +1,39 @@
+name: axiom-official/axiom-flow-refactorer
+version: 0.1.0
+language: python
+description: Refactors an existing Axiom flow graph using LLM-driven graph reassembly.
+author: Axiom Official
+license: MIT
+nodes:
+  - name: FlowRefactorClassifier
+    input: AgentRequest
+    output: FlowSpec
+    description: Parses the refactoring goal and fetches the existing flow graph JSON from the blobstore.
+    required_secrets:
+      - ANTHROPIC_API_KEY
+  - name: GraphFetcher
+    input: FlowSpec
+    output: FlowSpec
+    description: Fetches the current flow's source JSON (artifact_sources) from the blobstore and populates FlowSpec.graph_json.
+  - name: GraphReassembler
+    input: FlowSpec
+    output: FlowSpec
+    description: Uses the LLM to apply the requested changes to the graph JSON — adding/removing nodes, updating edge adapters, and reordering the flow.
+    required_secrets:
+      - ANTHROPIC_API_KEY
+  - name: FlowRefactorCompiler
+    input: FlowSpec
+    output: CompileResult
+    description: Compiles and stores the refactored graph via POST /app/graphs/compile.
+  - name: FlowRefactorTestInvoker
+    input: CompileResult
+    output: TestResult
+    description: Tests the refactored flow with synthetic input.
+  - name: FlowRefactorAnalyser
+    input: TestResult
+    output: AnalysisResult
+    description: Validates the refactored flow and returns fix_instructions if the graph has issues.
+    required_secrets:
+      - ANTHROPIC_API_KEY
+imports:
+  - axiom-official/axiom-agent-messages
