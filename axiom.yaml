@@ -5,35 +5,46 @@ description: Refactors an existing Axiom flow graph using LLM-driven graph reass
 author: Axiom Official
 license: MIT
 nodes:
-  - name: FlowRefactorClassifier
-    input: AgentRequest
-    output: FlowSpec
-    description: Parses the refactoring goal and fetches the existing flow graph JSON from the blobstore.
-    required_secrets:
-      - ANTHROPIC_API_KEY
-  - name: GraphFetcher
-    input: FlowSpec
-    output: FlowSpec
-    description: Fetches the current flow's source JSON (artifact_sources) from the blobstore and populates FlowSpec.graph_json.
-  - name: GraphReassembler
-    input: FlowSpec
-    output: FlowSpec
-    description: Uses the LLM to apply the requested changes to the graph JSON — adding/removing nodes, updating edge adapters, and reordering the flow.
-    required_secrets:
-      - ANTHROPIC_API_KEY
-  - name: FlowRefactorCompiler
-    input: FlowSpec
-    output: CompileResult
-    description: Compiles and stores the refactored graph via POST /app/graphs/compile.
-  - name: FlowRefactorTestInvoker
-    input: CompileResult
-    output: TestResult
-    description: Tests the refactored flow with synthetic input.
-  - name: FlowRefactorAnalyser
-    input: TestResult
-    output: AnalysisResult
-    description: Validates the refactored flow and returns fix_instructions if the graph has issues.
-    required_secrets:
-      - ANTHROPIC_API_KEY
+    - name: FlowRefactorClassifier
+      description: Parses the refactoring goal and fetches the existing flow graph JSON from the blobstore.
+      input: AgentRequest
+      output: FlowSpec
+      required_secrets:
+        - ANTHROPIC_API_KEY
+    - name: GraphFetcher
+      description: Fetches the current flow's source JSON (artifact_sources) from the blobstore and populates FlowSpec.graph_json.
+      input: FlowSpec
+      output: FlowSpec
+    - name: GraphReassembler
+      description: Uses the LLM to apply the requested changes to the graph JSON — adding/removing nodes, updating edge adapters, and reordering the flow.
+      input: FlowSpec
+      output: FlowSpec
+      required_secrets:
+        - ANTHROPIC_API_KEY
+    - name: FlowRefactorCompiler
+      description: Compiles and stores the refactored graph via POST /app/graphs/compile.
+      input: FlowSpec
+      output: CompileResult
+    - name: FlowRefactorTestInvoker
+      description: Tests the refactored flow with synthetic input.
+      input: CompileResult
+      output: TestResult
+    - name: FlowRefactorAnalyser
+      description: Validates the refactored flow and returns fix_instructions if the graph has issues.
+      input: TestResult
+      output: AnalysisResult
+      required_secrets:
+        - ANTHROPIC_API_KEY
 imports:
-  - axiom-official/axiom-agent-messages
+    - package: axiom-official/axiom-agent-messages
+      version: 0.1.0
+      messages:
+        - FlowSpec
+        - CompileResult
+        - PackageSpec
+        - PublishResult
+        - TestResult
+        - AnalysisResult
+        - AgentProgress
+        - AgentRequest
+        - NodeSpec
