@@ -15,7 +15,7 @@ Only modify what is requested — adding/removing nodes, updating edge adapters,
 def graph_reassembler(log: AxiomLogger, secrets: AxiomSecrets, input: FlowBuildContext) -> FlowBuildContext:
     """Apply LLM-driven changes to the graph JSON."""
 
-    api_key = secrets.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = secrets.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key)
 
     current_graph = input.graph_json or "{}"

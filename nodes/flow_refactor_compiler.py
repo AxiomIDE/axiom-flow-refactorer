@@ -11,7 +11,7 @@ def flow_refactor_compiler(log: AxiomLogger, secrets: AxiomSecrets, input: FlowB
     """Compile the refactored flow graph and populate compile fields."""
 
     bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
-    axiom_api_key = os.environ.get("AXIOM_API_KEY", "")
+    axiom_api_key = secrets.get("AXIOM_API_KEY", "")
 
     if not input.graph_json:
         input.compile_success = False

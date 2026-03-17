@@ -13,7 +13,7 @@ Extract the existing_graph_id (flow artifact ID) and the refactoring goal from t
 
 def flow_refactor_classifier(log: AxiomLogger, secrets: AxiomSecrets, input: AgentRequest) -> FlowBuildContext:
     """Parse the refactoring goal and identify the target flow."""
-    api_key = secrets.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = secrets.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key)
 
     message = client.messages.create(
@@ -22,7 +22,7 @@ def flow_refactor_classifier(log: AxiomLogger, secrets: AxiomSecrets, input: Age
         system=SYSTEM_PROMPT,
         messages=[{
             "role": "user",
-            "content": f"""Extract from: "{input.goal}"
+            "content": f"""Extract from: "{input.prompt}"
 
 Return JSON: {{"existing_graph_id": "<artifact id or empty>", "description": "<what to change>"}}"""
         }]
@@ -41,10 +41,10 @@ Return JSON: {{"existing_graph_id": "<artifact id or empty>", "description": "<w
     try:
         data = json.loads(content)
     except json.JSONDecodeError:
-        data = {"existing_graph_id": "", "description": input.goal}
+        data = {"existing_graph_id": "", "description": input.prompt}
 
     return FlowBuildContext(
         existing_graph_id=data.get("existing_graph_id", ""),
-        description=data.get("description", input.goal),
-        fix_instructions=input.goal,
+        description=data.get("description", input.prompt),
+        fix_instructions=input.prompt,
     )

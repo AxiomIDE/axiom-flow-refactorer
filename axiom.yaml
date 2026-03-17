@@ -5,42 +5,46 @@ description: Refactors an existing Axiom flow graph using LLM-driven graph reass
 author: Axiom Official
 license: MIT
 nodes:
-    - name: FlowRefactorClassifier
-      description: Parses the refactoring goal and sets existing_graph_id to identify the flow to refactor.
-      input: AgentRequest
-      output: FlowBuildContext
-      required_secrets:
-        - ANTHROPIC_API_KEY
-    - name: GraphFetcher
-      description: Fetches the current flow's source JSON from the blobstore and populates graph_json.
-      input: FlowBuildContext
-      output: FlowBuildContext
-    - name: GraphReassembler
-      description: Uses the LLM to apply the requested changes to graph_json. Uses fix_instructions on retry iterations.
-      input: FlowBuildContext
-      output: FlowBuildContext
-      required_secrets:
-        - ANTHROPIC_API_KEY
-    - name: FlowRefactorCompiler
-      description: Compiles and stores the refactored graph via POST /app/graphs/compile, populating compile_success, artifact_id, and compile_error.
-      input: FlowBuildContext
-      output: FlowBuildContext
-    - name: FlowRefactorTestInvoker
-      description: Tests the refactored flow with synthetic input, populating test_success, test_error, execution_id, and session_id.
-      input: FlowBuildContext
-      output: FlowBuildContext
-    - name: FlowRefactorAnalyser
-      description: Reads debug events, diagnoses issues, and populates has_error, fix_instructions, error_summary, and iteration.
-      input: FlowBuildContext
-      output: FlowBuildContext
-      required_secrets:
-        - ANTHROPIC_API_KEY
+  - name: FlowRefactorClassifier
+    input: AgentRequest
+    output: FlowBuildContext
+    description: Parses the refactoring prompt and sets existing_graph_id to identify the flow to refactor.
+    required_secrets:
+      - ANTHROPIC_API_KEY
+  - name: GraphFetcher
+    input: FlowBuildContext
+    output: FlowBuildContext
+    description: Fetches the current flow's source JSON from the blobstore and populates graph_json.
+    required_secrets:
+      - AXIOM_API_KEY
+  - name: GraphReassembler
+    input: FlowBuildContext
+    output: FlowBuildContext
+    description: Uses the LLM to apply the requested changes to graph_json. Uses fix_instructions on retry iterations.
+    required_secrets:
+      - ANTHROPIC_API_KEY
+  - name: FlowRefactorCompiler
+    input: FlowBuildContext
+    output: FlowBuildContext
+    description: Compiles and stores the refactored graph via POST /app/graphs/compile, populating compile_success, artifact_id, and compile_error.
+    required_secrets:
+      - AXIOM_API_KEY
+  - name: FlowRefactorTestInvoker
+    input: FlowBuildContext
+    output: FlowBuildContext
+    description: Tests the refactored flow with synthetic input, populating test_success, test_error, execution_id, and session_id.
+    required_secrets:
+      - AXIOM_API_KEY
+  - name: FlowRefactorAnalyser
+    input: FlowBuildContext
+    output: FlowBuildContext
+    description: Reads debug events, diagnoses issues, and populates has_error, fix_instructions, error_summary, and iteration.
+    required_secrets:
+      - ANTHROPIC_API_KEY
+      - AXIOM_API_KEY
 imports:
-    - package: axiom-official/axiom-agent-messages
-      version: 0.1.0
-      messages:
-        - AgentRequest
-        - FlowBuildContext
-        - NodeSpec
-        - PackageBuildContext
-        - AgentProgress
+  - package: axiom-official/axiom-agent-messages
+    version: 0.1.0
+    messages:
+      - AgentRequest
+      - FlowBuildContext

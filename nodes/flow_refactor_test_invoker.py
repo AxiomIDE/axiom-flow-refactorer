@@ -16,7 +16,7 @@ def flow_refactor_test_invoker(log: AxiomLogger, secrets: AxiomSecrets, input: F
         return input
 
     bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
-    axiom_api_key = os.environ.get("AXIOM_API_KEY", "")
+    axiom_api_key = secrets.get("AXIOM_API_KEY", "")
     session_id = str(uuid.uuid4()).replace("-", "")
 
     try:
