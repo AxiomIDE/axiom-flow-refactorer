@@ -15,8 +15,7 @@ def graph_fetcher(log: AxiomLogger, secrets: AxiomSecrets, input: FlowBuildConte
         return input
 
     bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
-    axiom_api_key = secrets.get("AXIOM_API_KEY", "")
-
+    axiom_api_key, _ = secrets.get("AXIOM_API_KEY")
     try:
         resp = httpx.get(
             f"{bff_url}/app/graphs/{input.existing_graph_id}",

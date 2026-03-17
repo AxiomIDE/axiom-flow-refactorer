@@ -13,7 +13,7 @@ Extract the existing_graph_id (flow artifact ID) and the refactoring goal from t
 
 def flow_refactor_classifier(log: AxiomLogger, secrets: AxiomSecrets, input: AgentRequest) -> FlowBuildContext:
     """Parse the refactoring goal and identify the target flow."""
-    api_key = secrets.get("ANTHROPIC_API_KEY")
+    api_key, _ = secrets.get("ANTHROPIC_API_KEY")
     client = anthropic.Anthropic(api_key=api_key)
 
     message = client.messages.create(

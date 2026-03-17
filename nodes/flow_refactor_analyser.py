@@ -18,12 +18,11 @@ def flow_refactor_analyser(log: AxiomLogger, secrets: AxiomSecrets, input: FlowB
         input.error_summary = "Refactored flow validated successfully"
         return input
 
-    api_key = secrets.get("ANTHROPIC_API_KEY")
-
+    api_key, _ = secrets.get("ANTHROPIC_API_KEY")
     debug_trace = ""
     if input.session_id:
         ingress_url = os.environ.get("INGRESS_URL", "http://axiom-ingress:80")
-        axiom_api_key = secrets.get("AXIOM_API_KEY", "")
+        axiom_api_key, _ = secrets.get("AXIOM_API_KEY")
         try:
             resp = httpx.get(
                 f"{ingress_url}/v1/debug-events",
