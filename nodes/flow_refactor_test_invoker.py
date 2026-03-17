@@ -1,19 +1,18 @@
-import logging
 import os
 import uuid
 
 import httpx
 
 from gen.axiom_official_axiom_agent_messages_messages_pb2 import CompileResult, TestResult
+from gen.axiom_logger import AxiomLogger, AxiomSecrets
 
-logger = logging.getLogger(__name__)
 
 
-def handle(result: CompileResult, context) -> TestResult:
+def flow_refactor_test_invoker(log: AxiomLogger, secrets: AxiomSecrets, input: CompileResult) -> TestResult:
     """Test the refactored flow with synthetic input."""
 
-    if not result.success:
-        return TestResult(success=False, error=f"Compile failed: {result.error}")
+    if not input.success:
+        return TestResult(success=False, error=f"Compile failed: {input.error}")
 
     bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
     axiom_api_key = os.environ.get("AXIOM_API_KEY", "")
@@ -22,7 +21,7 @@ def handle(result: CompileResult, context) -> TestResult:
     try:
         resp = httpx.post(
             f"{bff_url}/app/run",
-            json={"artifact_id": result.artifact_id, "input": {}},
+            json={"artifact_id": input.artifact_id, "input": {}},
             headers={
                 "Authorization": f"Bearer {axiom_api_key}",
                 "X-Debug-Session-Id": session_id,

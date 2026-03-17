@@ -1,20 +1,19 @@
 import json
-import logging
 import os
 
 import anthropic
 
 from gen.axiom_official_axiom_agent_messages_messages_pb2 import AgentRequest, FlowSpec
+from gen.axiom_logger import AxiomLogger, AxiomSecrets
 
-logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are an expert at understanding Axiom flow refactoring requests.
 Extract the artifact_id (flow ID) and the refactoring goal from the user's message."""
 
 
-def handle(req: AgentRequest, context) -> FlowSpec:
+def flow_refactor_classifier(log: AxiomLogger, secrets: AxiomSecrets, input: AgentRequest) -> FlowSpec:
     """Parse the refactoring goal and identify the target flow."""
-    api_key = context.secrets.get("ANTHROPIC_API_KEY") if hasattr(context, 'secrets') else os.environ.get("ANTHROPIC_API_KEY", "")
+    api_key = secrets.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY", "")
     client = anthropic.Anthropic(api_key=api_key)
 
     message = client.messages.create(
@@ -23,7 +22,7 @@ def handle(req: AgentRequest, context) -> FlowSpec:
         system=SYSTEM_PROMPT,
         messages=[{
             "role": "user",
-            "content": f"""Extract from: "{req.goal}"
+            "content": f"""Extract from: "{input.goal}"
 
 Return JSON: {{"artifact_id": "<flow id or empty>", "description": "<what to change>", "candidate_nodes": []}}"""
         }]
@@ -42,11 +41,11 @@ Return JSON: {{"artifact_id": "<flow id or empty>", "description": "<what to cha
     try:
         data = json.loads(content)
     except json.JSONDecodeError:
-        data = {"artifact_id": "", "description": req.goal, "candidate_nodes": []}
+        data = {"artifact_id": "", "description": input.goal, "candidate_nodes": []}
 
     return FlowSpec(
         artifact_id=data.get("artifact_id", ""),
-        description=data.get("description", req.goal),
+        description=data.get("description", input.goal),
         candidate_nodes=data.get("candidate_nodes", []),
-        fix_instructions=req.goal,
+        fix_instructions=input.goal,
     )
