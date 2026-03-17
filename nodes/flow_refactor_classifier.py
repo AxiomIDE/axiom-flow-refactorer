@@ -3,15 +3,15 @@ import os
 
 import anthropic
 
-from gen.axiom_official_axiom_agent_messages_messages_pb2 import AgentRequest, FlowSpec
+from gen.axiom_official_axiom_agent_messages_messages_pb2 import AgentRequest, FlowBuildContext
 from gen.axiom_logger import AxiomLogger, AxiomSecrets
 
 
 SYSTEM_PROMPT = """You are an expert at understanding Axiom flow refactoring requests.
-Extract the artifact_id (flow ID) and the refactoring goal from the user's message."""
+Extract the existing_graph_id (flow artifact ID) and the refactoring goal from the user's message."""
 
 
-def flow_refactor_classifier(log: AxiomLogger, secrets: AxiomSecrets, input: AgentRequest) -> FlowSpec:
+def flow_refactor_classifier(log: AxiomLogger, secrets: AxiomSecrets, input: AgentRequest) -> FlowBuildContext:
     """Parse the refactoring goal and identify the target flow."""
     api_key = secrets.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY", "")
     client = anthropic.Anthropic(api_key=api_key)
@@ -24,7 +24,7 @@ def flow_refactor_classifier(log: AxiomLogger, secrets: AxiomSecrets, input: Age
             "role": "user",
             "content": f"""Extract from: "{input.goal}"
 
-Return JSON: {{"artifact_id": "<flow id or empty>", "description": "<what to change>", "candidate_nodes": []}}"""
+Return JSON: {{"existing_graph_id": "<artifact id or empty>", "description": "<what to change>"}}"""
         }]
     )
 
@@ -41,11 +41,10 @@ Return JSON: {{"artifact_id": "<flow id or empty>", "description": "<what to cha
     try:
         data = json.loads(content)
     except json.JSONDecodeError:
-        data = {"artifact_id": "", "description": input.goal, "candidate_nodes": []}
+        data = {"existing_graph_id": "", "description": input.goal}
 
-    return FlowSpec(
-        artifact_id=data.get("artifact_id", ""),
+    return FlowBuildContext(
+        existing_graph_id=data.get("existing_graph_id", ""),
         description=data.get("description", input.goal),
-        candidate_nodes=data.get("candidate_nodes", []),
         fix_instructions=input.goal,
     )

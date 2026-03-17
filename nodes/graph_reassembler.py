@@ -3,7 +3,7 @@ import os
 
 import anthropic
 
-from gen.axiom_official_axiom_agent_messages_messages_pb2 import FlowSpec
+from gen.axiom_official_axiom_agent_messages_messages_pb2 import FlowBuildContext
 from gen.axiom_logger import AxiomLogger, AxiomSecrets
 
 
@@ -12,7 +12,7 @@ Apply the requested changes while preserving valid graph structure.
 Only modify what is requested — adding/removing nodes, updating edge adapters, reordering."""
 
 
-def graph_reassembler(log: AxiomLogger, secrets: AxiomSecrets, input: FlowSpec) -> FlowSpec:
+def graph_reassembler(log: AxiomLogger, secrets: AxiomSecrets, input: FlowBuildContext) -> FlowBuildContext:
     """Apply LLM-driven changes to the graph JSON."""
 
     api_key = secrets.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY", "")
@@ -54,7 +54,7 @@ Return ONLY the updated graph JSON object."""
         graph = json.loads(content)
         input.graph_json = json.dumps(graph)
     except json.JSONDecodeError:
-        log.warning("LLM returned invalid JSON for reassembled graph; keeping original")
+        log.warn("LLM returned invalid JSON for reassembled graph; keeping original")
 
     input.fix_instructions = ""
     return input

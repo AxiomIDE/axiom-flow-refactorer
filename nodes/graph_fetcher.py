@@ -1,17 +1,17 @@
+import json
 import os
 
 import httpx
 
-from gen.axiom_official_axiom_agent_messages_messages_pb2 import FlowSpec
+from gen.axiom_official_axiom_agent_messages_messages_pb2 import FlowBuildContext
 from gen.axiom_logger import AxiomLogger, AxiomSecrets
 
 
-
-def graph_fetcher(log: AxiomLogger, secrets: AxiomSecrets, input: FlowSpec) -> FlowSpec:
+def graph_fetcher(log: AxiomLogger, secrets: AxiomSecrets, input: FlowBuildContext) -> FlowBuildContext:
     """Fetch the current flow graph JSON from the BFF blobstore."""
 
-    if not input.artifact_id:
-        log.warning("No artifact_id provided; skipping graph fetch")
+    if not input.existing_graph_id:
+        log.warn("No existing_graph_id provided; skipping graph fetch")
         return input
 
     bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
@@ -19,17 +19,16 @@ def graph_fetcher(log: AxiomLogger, secrets: AxiomSecrets, input: FlowSpec) -> F
 
     try:
         resp = httpx.get(
-            f"{bff_url}/app/graphs/{input.artifact_id}",
+            f"{bff_url}/app/graphs/{input.existing_graph_id}",
             headers={"Authorization": f"Bearer {axiom_api_key}"},
             timeout=15.0,
         )
         if resp.status_code == 200:
             data = resp.json()
-            import json
             input.graph_json = json.dumps(data.get("graph", data))
         else:
-            log.warning(f"Graph fetch returned {resp.status_code}: {resp.text[:200]}")
+            log.warn(f"Graph fetch returned {resp.status_code}: {resp.text[:200]}")
     except Exception as e:
-        log.warning(f"Failed to fetch graph: {e}")
+        log.warn(f"Failed to fetch graph: {e}")
 
     return input

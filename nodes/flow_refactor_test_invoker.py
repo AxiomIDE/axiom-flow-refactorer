@@ -3,16 +3,17 @@ import uuid
 
 import httpx
 
-from gen.axiom_official_axiom_agent_messages_messages_pb2 import CompileResult, TestResult
+from gen.axiom_official_axiom_agent_messages_messages_pb2 import FlowBuildContext
 from gen.axiom_logger import AxiomLogger, AxiomSecrets
 
 
-
-def flow_refactor_test_invoker(log: AxiomLogger, secrets: AxiomSecrets, input: CompileResult) -> TestResult:
+def flow_refactor_test_invoker(log: AxiomLogger, secrets: AxiomSecrets, input: FlowBuildContext) -> FlowBuildContext:
     """Test the refactored flow with synthetic input."""
 
-    if not input.success:
-        return TestResult(success=False, error=f"Compile failed: {input.error}")
+    if not input.compile_success:
+        input.test_success = False
+        input.test_error = f"Compile failed: {input.compile_error}"
+        return input
 
     bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
     axiom_api_key = os.environ.get("AXIOM_API_KEY", "")
@@ -28,18 +29,19 @@ def flow_refactor_test_invoker(log: AxiomLogger, secrets: AxiomSecrets, input: C
             },
             timeout=60.0,
         )
+
+        input.session_id = session_id
+
         if resp.status_code == 200:
-            return TestResult(
-                success=True,
-                session_id=session_id,
-                execution_id=resp.json().get("execution_id", ""),
-                output_json=resp.text,
-            )
+            input.test_success = True
+            input.execution_id = resp.json().get("execution_id", "")
+            input.output_json = resp.text
         else:
-            return TestResult(
-                success=False,
-                session_id=session_id,
-                error=f"Run returned {resp.status_code}: {resp.text[:300]}",
-            )
+            input.test_success = False
+            input.test_error = f"Run returned {resp.status_code}: {resp.text[:300]}"
     except Exception as e:
-        return TestResult(success=False, session_id=session_id, error=str(e))
+        input.test_success = False
+        input.test_error = str(e)
+        input.session_id = session_id
+
+    return input

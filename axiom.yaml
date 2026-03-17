@@ -6,45 +6,41 @@ author: Axiom Official
 license: MIT
 nodes:
     - name: FlowRefactorClassifier
-      description: Parses the refactoring goal and fetches the existing flow graph JSON from the blobstore.
+      description: Parses the refactoring goal and sets existing_graph_id to identify the flow to refactor.
       input: AgentRequest
-      output: FlowSpec
+      output: FlowBuildContext
       required_secrets:
         - ANTHROPIC_API_KEY
     - name: GraphFetcher
-      description: Fetches the current flow's source JSON (artifact_sources) from the blobstore and populates FlowSpec.graph_json.
-      input: FlowSpec
-      output: FlowSpec
+      description: Fetches the current flow's source JSON from the blobstore and populates graph_json.
+      input: FlowBuildContext
+      output: FlowBuildContext
     - name: GraphReassembler
-      description: Uses the LLM to apply the requested changes to the graph JSON — adding/removing nodes, updating edge adapters, and reordering the flow.
-      input: FlowSpec
-      output: FlowSpec
+      description: Uses the LLM to apply the requested changes to graph_json. Uses fix_instructions on retry iterations.
+      input: FlowBuildContext
+      output: FlowBuildContext
       required_secrets:
         - ANTHROPIC_API_KEY
     - name: FlowRefactorCompiler
-      description: Compiles and stores the refactored graph via POST /app/graphs/compile.
-      input: FlowSpec
-      output: CompileResult
+      description: Compiles and stores the refactored graph via POST /app/graphs/compile, populating compile_success, artifact_id, and compile_error.
+      input: FlowBuildContext
+      output: FlowBuildContext
     - name: FlowRefactorTestInvoker
-      description: Tests the refactored flow with synthetic input.
-      input: CompileResult
-      output: TestResult
+      description: Tests the refactored flow with synthetic input, populating test_success, test_error, execution_id, and session_id.
+      input: FlowBuildContext
+      output: FlowBuildContext
     - name: FlowRefactorAnalyser
-      description: Validates the refactored flow and returns fix_instructions if the graph has issues.
-      input: TestResult
-      output: AnalysisResult
+      description: Reads debug events, diagnoses issues, and populates has_error, fix_instructions, error_summary, and iteration.
+      input: FlowBuildContext
+      output: FlowBuildContext
       required_secrets:
         - ANTHROPIC_API_KEY
 imports:
     - package: axiom-official/axiom-agent-messages
       version: 0.1.0
       messages:
-        - FlowSpec
-        - CompileResult
-        - PackageSpec
-        - PublishResult
-        - TestResult
-        - AnalysisResult
-        - AgentProgress
         - AgentRequest
+        - FlowBuildContext
         - NodeSpec
+        - PackageBuildContext
+        - AgentProgress
