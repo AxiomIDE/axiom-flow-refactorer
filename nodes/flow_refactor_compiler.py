@@ -10,7 +10,7 @@ from gen.axiom_logger import AxiomLogger, AxiomSecrets
 def flow_refactor_compiler(log: AxiomLogger, secrets: AxiomSecrets, input: FlowBuildContext) -> FlowBuildContext:
     """Compile the refactored flow graph and populate compile fields."""
 
-    bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
+    bff_url = os.environ.get("BFF_URL", "http://axiom-bff.default.svc.cluster.local:8083")
     axiom_api_key, _ = secrets.get("AXIOM_API_KEY")
     if not input.graph_json:
         input.compile_success = False

@@ -14,7 +14,7 @@ def graph_fetcher(log: AxiomLogger, secrets: AxiomSecrets, input: FlowBuildConte
         log.warn("No existing_graph_id provided; skipping graph fetch")
         return input
 
-    bff_url = os.environ.get("BFF_URL", "http://axiom-bff:8083")
+    bff_url = os.environ.get("BFF_URL", "http://axiom-bff.default.svc.cluster.local:8083")
     axiom_api_key, _ = secrets.get("AXIOM_API_KEY")
     try:
         resp = httpx.get(
